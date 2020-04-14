@@ -1,6 +1,5 @@
 import java.io.*;
 import java.util.*;
-import java.lang.Integer.*;
 
 public class Run
 {
@@ -31,7 +30,8 @@ public class Run
 		GanttChart.close();
 	}
 
-	private static int open(){
+	private static int open()
+	{
 		File in;
 		int rrtq = 0;
 
@@ -50,16 +50,20 @@ public class Run
 
 		String token = scanner.next();
 
-		if (token.equals("RR")){
+		if (token.equals("RR"))
+		{
 			algo = Algorithm.RR;
 		}
-		else if (token.equals("SJF")){
+		else if (token.equals("SJF"))
+		{
 			algo = Algorithm.SJF;
 		}
-		else if (token.equals("PR_noPREMP")){
+		else if (token.equals("PR_noPREMP"))
+		{
 			algo = Algorithm.PR_noPREMP;
 		}
-		else if (token.equals("PR_withPREMP")){
+		else if (token.equals("PR_withPREMP"))
+		{
 			algo = Algorithm.PR_withPREMP;
 		}
 		else {
@@ -67,24 +71,6 @@ public class Run
 			System.exit(1);
 		}
 
-//		switch(token)
-//		{
-//			case "RR":
-//				algo = Algorithm.RR;
-//				break;
-//			case "SJF":
-//				algo = Algorithm.SJF;
-//				break;
-//			case "PR_noPREMP":
-//				algo = Algorithm.PR_noPREMP;
-//				break;
-//			case "PR_withPREMP":
-//				algo = Algorithm.PR_withPREMP;
-//				break;
-//			default:
-//				System.err.println("Error: Input file contained unidentified CPU Scheduling algorithm\n");
-//				System.exit(1);
-//		}
 		if ( algo == Algorithm.RR )
 		{
 			rrtq = scanner.nextInt();
@@ -117,15 +103,19 @@ enum Algorithm
 
 class Process
 {
+	// I didn't use private fields.
+	// Public fields made it was easier to code and read my algorithms.
+	// And frankly I don't believe it really matters for this assignment
 	public final int proc_number;
 	public final int arrival_time;
 	public final int cpu_burst;
 	public final int priority;
 
 	public int time_remaining;
-	public int wait_time; //kept for debugging purposes
+	public int wait_time;
 
-	Process(int p, int a, int c, int pr){
+	Process(int p, int a, int c, int pr)
+	{
 		proc_number 	= 	p;
 		arrival_time 	= 	a;
 		cpu_burst 		= 	c;
@@ -134,55 +124,30 @@ class Process
 		wait_time		= 	0;
 	}
 
-	public String toString(){
-		return "Process: " + proc_number + "\nArrival Time: " + arrival_time + "\nCPU Burst: " + cpu_burst + "\nPriority: " + priority + "\nWait Time: " + wait_time + "\n";
+	public String toString()
+	{
+		return "Process: " + proc_number + "\nArrival Time: " + arrival_time + "\nCPU Burst: " + cpu_burst + "\nPriority: " + priority + "\nWait Time: " + wait_time + "\n"
+				+ "\nTime Remaining: " + time_remaining;
 	}
 
-//	public void setWait_time(int wait_time) {
-//		this.wait_time = wait_time;
-//	}
-//
-//	public void setTime_remaining(int time_remaining) {
-//		this.time_remaining = time_remaining;
-//	}
-//
-//	public int getTime_remaining() {
-//		return time_remaining;
-//	}
-//
-//	public int getProc_number() {
-//		return proc_number;
-//	}
-//
-//	public int getWait_time() {
-//		return wait_time;
-//	}
-//
-//	public int getPriority() {
-//		return priority;
-//	}
-//
-//	public int getArrival_time() {
-//		return arrival_time;
-//	}
-//
-//	public int getCpu_burst() {
-//		return cpu_burst;
-//	}
 }
 
-class Scheduler{
-	public static void Priority_withPremp(Queue<Process> hold, int proc_count){
+class Scheduler
+{
+	public static void Priority_withPremp(Queue<Process> hold, int proc_count)
+	{
 		GanttChart.printAlgo(Algorithm.PR_withPREMP);
 
 		PriorityQueue<Process> pq = new PriorityQueue<Process>(proc_count, new PriorityComparator());
 
-		int procs_left = proc_count;
 		Process p;
 		int p_num;
-		int runTime = 0;
-		double waitTime = 0;
 		boolean preempted;
+
+		int procs_left  = 	proc_count;
+		int runTime 	= 	0;
+		double waitTime = 	0.0;
+
 
 		getArrivingProcs(pq, hold, procs_left, runTime);
 
@@ -196,6 +161,7 @@ class Scheduler{
 			while (p.time_remaining != 0 && !preempted){
 				p.time_remaining--;
 				runTime++;
+
 				getArrivingProcs(pq, hold, procs_left, runTime);
 
 				if (!pq.isEmpty()) {
@@ -217,10 +183,12 @@ class Scheduler{
 		GanttChart.printAvgWaitTime(waitTime / proc_count);
 	}
 
-	public static void noPremp(Queue<Process> hold, int proc_count, Algorithm algo){
-		GanttChart.printAlgo( algo );
+	public static void noPremp(Queue<Process> hold, int proc_count, Algorithm algo)
+	{
+		GanttChart.printAlgo(algo);
 
-		PriorityQueue<Process> pq = new PriorityQueue<Process>(proc_count,
+		PriorityQueue<Process> pq = new PriorityQueue<Process>(
+									proc_count,
 									algo == Algorithm.SJF ? new SJFComparator() : new PriorityComparator());
 
 		int procs_left = proc_count;
@@ -232,69 +200,44 @@ class Scheduler{
 		getArrivingProcs(pq, hold, procs_left, runTime);
 
 		while ( procs_left > 0 ){
-			p = pq.remove();
-			p_num = p.proc_number;
-
-			GanttChart.printGanttLn(runTime, p_num);
-
-			while ( p.time_remaining != 0){
-				p.time_remaining--;
+			// If pq is empty, processes haven't arrived at runTime yet.
+			// procs_left > 0 so processes so there are processes in hold queue
+			// Loop until a process is put into the queue.
+			// NOTE: This is not relevant to a test_case provided by Professor.
+			while (pq.isEmpty()){
 				runTime++;
 				getArrivingProcs(pq, hold, procs_left, runTime);
 			}
 
+			// Get the process requesting cpu
+			p = pq.remove();
+			p_num = p.proc_number;
+
+			// Print the process on the cpu
+			GanttChart.printGanttLn(runTime, p_num);
+
+			// Process gets CPU until its burst is completed
+			while ( p.time_remaining != 0){
+				p.time_remaining--;
+				runTime++;
+			}
+
+			getArrivingProcs(pq, hold, procs_left, runTime);
+
+			// Calculate wait time.
+			// The wait_time field of process is unnecessary for calculation, but useful for debugging
 			p.wait_time = runTime - p.cpu_burst - p.arrival_time;
 			waitTime += p.wait_time;
+
+			// A process has completed it's CPU burst, so we denote there is one less process that needs the CPU
 			procs_left--;
 		}
 
 		GanttChart.printAvgWaitTime(waitTime / proc_count);
 	}
 
-	public static void Priority_noPremp(Queue<Process> hold, int proc_count){
-		GanttChart.printAlgo(Algorithm.PR_noPREMP);
-
-		PriorityQueue<Process> pq = new PriorityQueue<Process>(proc_count, new PriorityComparator());
-
-		int procs_left = proc_count;
-		Process p;
-		int p_num;
-		int runTime = 0;
-		double waitTime = 0;
-
-		getArrivingProcs(pq, hold, procs_left, runTime);
-
-		while ( procs_left > 0 ){
-			p = pq.remove();
-			p_num = p.proc_number;
-
-			GanttChart.printGanttLn(runTime, p_num);
-
-			while ( p.time_remaining != 0){
-				p.time_remaining--;
-				runTime++;
-				getArrivingProcs(pq, hold, procs_left, runTime);
-			}
-
-			p.wait_time = runTime - p.cpu_burst - p.arrival_time;
-			waitTime += p.wait_time;
-			procs_left--;
-		}
-
-		GanttChart.printAvgWaitTime(waitTime / proc_count);
-	}
-
-//	private static class PriorityComparator implements Comparator<Process> {
-//		public int compare (Process p1, Process p2){
-//			int ret = Integer.compare(p1.priority, p2.priority);
-//			if (ret == 0){ // Priority tie
-//				ret = Integer.compare(p1.proc_number, p2.proc_number);
-//			}
-//			return ret;
-//		}
-//	}
-
-	private static class PriorityComparator implements Comparator<Process> {
+	private static class PriorityComparator implements Comparator<Process>
+	{
 		public int compare (Process p1, Process p2){
 			int ret = ((Integer) p1.priority).compareTo((Integer) p2.priority);
 			if (ret == 0){ // Priority tie
@@ -304,66 +247,20 @@ class Scheduler{
 		}
 	}
 
-	public static void ShortestJobFirst(Queue<Process> hold, int proc_count){
-		GanttChart.printAlgo(Algorithm.SJF);
-
-		PriorityQueue<Process> pq = new PriorityQueue<Process>(proc_count, new SJFComparator());
-
-		int procs_left = proc_count;
-		int runTime = 0;
-		double waitTime = 0;
-		Process p;
-		int p_num;
-
-		getArrivingProcs(pq, hold, procs_left, runTime);
-
-		while ( procs_left > 0 ){
-			p = pq.remove();
-			p_num = p.proc_number;
-
-			GanttChart.printGanttLn(runTime, p_num);
-
-			while ( p.time_remaining != 0){
-				p.time_remaining--;
-				runTime++;
-				getArrivingProcs(pq, hold, procs_left, runTime);
-			}
-
-			p.wait_time = runTime - p.cpu_burst - p.arrival_time;
-			waitTime += p.wait_time;
-			procs_left--;
-		}
-
-		GanttChart.printAvgWaitTime(waitTime / proc_count);
-	}
-
-	private static void getArrivingProcs(Queue<Process> pq, Queue<Process> hold, int procs_left, int runTime){
-		for (int i = 0; i < procs_left; i++){
-			Process temp = hold.poll();
-			if (temp != null){
-				if (temp.arrival_time <= runTime){
-					pq.add(temp);
-				} else {
-					hold.add(temp);
-				}
+	private static void getArrivingProcs(PriorityQueue<Process> pq, Queue<Process> hold, int procs_left, int runTime)
+	{
+		for (int i = 0; i < procs_left && !hold.isEmpty(); i++){
+			Process temp = hold.remove();
+			if (temp.arrival_time <= runTime){
+				pq.add(temp);
+			} else {
+				hold.add(temp);
 			}
 		}
 	}
 
-//	private static class SJFComparator implements Comparator<Process>{
-//		public int compare (Process p1, Process p2){
-//			int ret = Integer.compare(p1.cpu_burst, p2.cpu_burst);
-//			if (ret == 0){ // CPU burst length tie
-//				ret = Integer.compare(p1.arrival_time, p2.arrival_time);
-//			}
-//			if (ret == 0){ // Arrival time tie
-//				ret = Integer.compare(p1.proc_number, p2.proc_number);
-//			}
-//			return ret;
-//		}
-//	}
-
-	private static class SJFComparator implements Comparator<Process>{
+	private static class SJFComparator implements Comparator<Process>
+	{
 		public int compare (Process p1, Process p2){
 			int ret = ((Integer) p1.cpu_burst).compareTo((Integer) p2.cpu_burst);
 			if (ret == 0){ // CPU burst length tie
@@ -376,7 +273,8 @@ class Scheduler{
 		}
 	}
 
-	public static void RoundRobin(Queue<Process> next_q, int rrtq, int proc_count) {
+	public static void RoundRobin(Queue<Process> next_q, int rrtq, int proc_count)
+	{
 		Queue<Process> q = new LinkedList<Process>();
 
 		// Print header to output file
@@ -499,3 +397,27 @@ class GanttChart
 		out.format("AVG Waiting Time: %.2f\n", avg);
 	}
 }
+
+/*****Old forgotten cold****/
+//	private static class SJFComparator implements Comparator<Process>{
+//		public int compare (Process p1, Process p2){
+//			int ret = Integer.compare(p1.cpu_burst, p2.cpu_burst);
+//			if (ret == 0){ // CPU burst length tie
+//				ret = Integer.compare(p1.arrival_time, p2.arrival_time);
+//			}
+//			if (ret == 0){ // Arrival time tie
+//				ret = Integer.compare(p1.proc_number, p2.proc_number);
+//			}
+//			return ret;
+//		}
+//	}
+
+//	private static class PriorityComparator implements Comparator<Process> {
+//		public int compare (Process p1, Process p2){
+//			int ret = Integer.compare(p1.priority, p2.priority);
+//			if (ret == 0){ // Priority tie
+//				ret = Integer.compare(p1.proc_number, p2.proc_number);
+//			}
+//			return ret;
+//		}
+//	}
