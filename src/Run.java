@@ -1,3 +1,9 @@
+/*
+	Reynolds, Jake
+	CSC 139 Section 5
+	Assignment 3: CPU Scheduling
+*/
+
 import java.io.*;
 import java.util.*;
 
@@ -15,7 +21,6 @@ public class Run
 		open();
 		// Read input file, create process objs, and put them in a queue
 		populateQ();
-
 		// Send queue to the proper Scheduling algorithm
 		switch(algo)
 		{
@@ -30,7 +35,6 @@ public class Run
 				Scheduler.Priority_withPremp(q, proc_count);
 				break;
 		}
-
 		// Close output file
 		GanttChart.close();
 	}
@@ -38,7 +42,6 @@ public class Run
 	private static void open()
 	{
 		File in;
-
 		try
 		{
 			in = new File("input.txt");
@@ -51,9 +54,7 @@ public class Run
 			e.printStackTrace();
 			System.exit(1);
 		}
-
 		String token = scanner.next();
-
 		if (token.equals("RR"))
 		{
 			algo = Algorithm.RR;
@@ -74,7 +75,6 @@ public class Run
 			System.err.println("Error: Input file contained unidentified CPU Scheduling algorithm\n");
 			System.exit(1);
 		}
-
 		if ( algo == Algorithm.RR )
 		{
 			rrtq = scanner.nextInt();
@@ -112,12 +112,10 @@ class Process
 	public final int arrival_time;
 	public final int cpu_burst;
 	public final int priority;
-
 	public final int order; 	// For Round Robin
 	public int time_remaining;  // For Priority_withPREMP
 	public int wait_time; 		// NOTE: The wait_time field of process is unnecessary for calculation,
 								// but it is very useful for debugging
-
 	Process(int p, int a, int c, int pr, int o)
 	{
 		proc_number 	= 	p;
@@ -128,13 +126,11 @@ class Process
 		time_remaining 	= 	cpu_burst;
 		wait_time		= 	0;
 	}
-
 	public String toString()
 	{
 		return "Process: " + proc_number + "\nArrival Time: " + arrival_time + "\nCPU Burst: " + cpu_burst + "\nPriority: " + priority + "\nWait Time: " + wait_time + "\n"
 				+ "\nTime Remaining: " + time_remaining;
 	}
-
 }
 
 class Scheduler
